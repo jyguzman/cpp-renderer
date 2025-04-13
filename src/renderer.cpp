@@ -70,11 +70,9 @@ void Renderer::update() {
 }
 
 void Renderer::render() {
-    //SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 255);
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
     this->draw_mesh(&cube);
-    //this->draw_line(10, 10, 100, 100, 0xff0000ff);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -189,6 +187,7 @@ void Renderer::render_color_buffer() {
     SDL_UpdateTexture(texture, nullptr, this->color_buffer.data(), 
         (int)(this->window_width * sizeof(uint32_t)));
     SDL_RenderTexture(this->renderer, texture, nullptr, nullptr);
+    SDL_DestroyTexture(texture);
 }
 
 void Renderer::clear_color_buffer(uint32_t color) {
