@@ -5,9 +5,12 @@
 
 int main(int argc, char* argv[]) {
     Renderer renderer(800, 600);
-    renderer.render();
+    while (renderer.is_running) {
+        renderer.process_input();
+        renderer.update();
+        renderer.render();
+    }
 
-    SDL_Delay(50000); 
     SDL_DestroyWindow(renderer.window);
     SDL_Quit();
     return 0;

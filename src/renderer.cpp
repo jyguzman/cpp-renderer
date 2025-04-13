@@ -35,7 +35,6 @@ void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->draw_line(10, 10, 100, 100, 0xff0000ff);
     this->render_color_buffer();
-    this->clear_color_buffer(0xff0000ff);
     SDL_RenderPresent(this->renderer);
 }
 
@@ -44,6 +43,17 @@ void Renderer::update() {
 }
 
 void Renderer::process_input() {
+    SDL_Event event;
+    if (SDL_PollEvent(&event)) {
+        switch (event.type) {
+        case SDL_EVENT_QUIT:
+            this->is_running = false;
+            break;
+        case SDL_EVENT_KEY_DOWN:
+            if (event.key.key == SDLK_ESCAPE) this->is_running = false;
+            break;
+        }
+    }
 
 }
 
