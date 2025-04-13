@@ -10,24 +10,30 @@ Renderer::Renderer(int window_width, int window_height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
+        this->initialized = false;
     }
 
-    SDL_Window* window = SDL_CreateWindow("3D Renderer", window_width, window_height, SDL_WINDOW_RESIZABLE);
-    if (!window) {
+    this->window = SDL_CreateWindow("3D Renderer", window_width, window_height, SDL_WINDOW_RESIZABLE);
+    if (!this->window) {
         std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
+        this->initialized = false;
     }
 
-    SDL_Renderer* sdl_renderer = SDL_CreateRenderer(window, nullptr);
-    if (!sdl_renderer) {
+    this->renderer = SDL_CreateRenderer(window, nullptr);
+    if (!this->renderer) {
         std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
+        this->initialized = false;
     }
 
-    this->window = window;
-    this->renderer = sdl_renderer;
     this->color_buffer.resize(window_width * window_height);
+    this->initialized = true;
 };
+
+void Renderer::set_target_fps(double fps) {
+
+}
 
 void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
     if (x < 0 || x >= width) {
@@ -45,7 +51,6 @@ void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
             this->set_color(color, i, j);
         }
     }
-    return;
 }
 
 void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
@@ -72,12 +77,8 @@ void Renderer::draw_mesh(Mesh* mesh) {
     return;
 }
 
-void Renderer::set_color(uint32_t color, int row, int col) {
-    if (this->color_buffer.size() == 0) {
-        this->color_buffer.resize(this->window_width * this->window_height);
-    }
-    this->color_buffer[(this->window_width * row) + col] = color;
-    return;
+void Renderer::set_color(uint32_t color, int x, int y) {
+    this->color_buffer[(this->window_width * x) + y] = color;
 }
 
 void Renderer::render_color_buffer() {
@@ -96,5 +97,4 @@ void Renderer::clear_color_buffer(uint32_t color) {
             this->set_color(color, i, j);
         }
     }
-    return;
 }
