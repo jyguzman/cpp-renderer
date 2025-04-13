@@ -10,26 +10,42 @@ Renderer::Renderer(int window_width, int window_height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
-        this->initialized = false;
+        this->is_running = false;
     }
 
     this->window = SDL_CreateWindow("3D Renderer", window_width, window_height, SDL_WINDOW_RESIZABLE);
     if (!this->window) {
         std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
-        this->initialized = false;
+        this->is_running = false;
     }
 
     this->renderer = SDL_CreateRenderer(window, nullptr);
     if (!this->renderer) {
         std::cerr << "Renderer creation failed: " << SDL_GetError() << std::endl;
         SDL_Quit();
-        this->initialized = false;
+        this->is_running = false;
     }
 
     this->color_buffer.resize(window_width * window_height);
-    this->initialized = true;
+    this->is_running = true;
 };
+
+void Renderer::render() {
+    SDL_RenderClear(this->renderer);
+    this->draw_line(10, 10, 100, 100, 0xff0000ff);
+    this->render_color_buffer();
+    this->clear_color_buffer(0xff0000ff);
+    SDL_RenderPresent(this->renderer);
+}
+
+void Renderer::update() {
+
+}
+
+void Renderer::process_input() {
+
+}
 
 void Renderer::set_target_fps(double fps) {
 
