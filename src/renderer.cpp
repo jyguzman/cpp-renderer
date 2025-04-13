@@ -2,13 +2,7 @@
 #include <iostream>
 #include "renderer.hpp"
 #include "geometry.hpp"
-
-Vec3 transform(Vec3 v, Vec3 rotation) {
-    return v
-        .rotate_x(rotation.x).rotate_y(rotation.y).rotate_z(rotation.z)
-        .translate(0, 0, 5)
-        .project(256);
-}
+#include "obj.h"
 
 Renderer::Renderer(int window_width, int window_height) {
     this->window_width = window_width;
@@ -38,32 +32,36 @@ Renderer::Renderer(int window_width, int window_height) {
     this->is_running = true;
 };
 
-Mesh cube(
-    {
-         Vec3 { -1, -1, -1 },
-         Vec3 { -1, 1, -1 },
-         Vec3 { 1, 1, -1 },
-         Vec3 { 1, -1, -1 },
-         Vec3 { 1, 1, 1 },
-         Vec3 { 1, -1, 1 },
-         Vec3 { -1, 1, 1 },
-         Vec3 { -1, -1, 1 },
-    },
-    {
-         Face { 1, 2, 3 },
-         Face { 1, 3, 4 },
-         Face { 4, 3, 5 },
-         Face { 4, 5, 6 },
-         Face { 6, 5, 7 },
-         Face { 6, 7, 8 },
-         Face { 8, 2, 1 },
-         Face { 2, 7, 5 },
-         Face { 2, 5, 3 },
-         Face { 6, 8, 1 },
-         Face { 6, 1, 4 },
-    },
-    Vec3{ 0, 0, 0 }
-    );
+
+
+//Mesh cube(
+//    {
+//         Vec3 { -1, -1, -1 },
+//         Vec3 { -1, 1, -1 },
+//         Vec3 { 1, 1, -1 },
+//         Vec3 { 1, -1, -1 },
+//         Vec3 { 1, 1, 1 },
+//         Vec3 { 1, -1, 1 },
+//         Vec3 { -1, 1, 1 },
+//         Vec3 { -1, -1, 1 },
+//    },
+//    {
+//         Face { 1, 2, 3 },
+//         Face { 1, 3, 4 },
+//         Face { 4, 3, 5 },
+//         Face { 4, 5, 6 },
+//         Face { 6, 5, 7 },
+//         Face { 6, 7, 8 },
+//         Face { 8, 2, 1 },
+//         Face { 2, 7, 5 },
+//         Face { 2, 5, 3 },
+//         Face { 6, 8, 1 },
+//         Face { 6, 1, 4 },
+//    },
+//    Vec3{ 0, 0, 0 }
+//    );
+
+Mesh lion = load_obj("../../../assets/cone.obj");
 
 void Renderer::update() {
 
@@ -72,7 +70,7 @@ void Renderer::update() {
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&cube);
+    this->draw_mesh(&lion);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -133,6 +131,13 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
     }
 }
 
+Vec3 transform(Vec3 v, Vec3 rotation) {
+    return v
+        .rotate_x(rotation.x).rotate_y(rotation.y).rotate_z(rotation.z)
+        .translate(0, 0, 5)
+        .project(256);
+}
+
 void Renderer::draw_mesh(Mesh* mesh) {
     auto vertices = mesh->vertices;
     auto faces = mesh->faces;
@@ -145,10 +150,9 @@ void Renderer::draw_mesh(Mesh* mesh) {
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
 
-        // Remove '-1' after loading meshes
-        Vec3 v1 = vertices[f.x - 1];
-        Vec3 v2 = vertices[f.y - 1];
-        Vec3 v3 = vertices[f.z - 1];
+        Vec3 v1 = vertices[f.x];
+        Vec3 v2 = vertices[f.y];
+        Vec3 v3 = vertices[f.z];
 
         Vec3 t1 = transform(v1, mesh->rotation).translate(w, h, 0);
         Vec3 t2 = transform(v2, mesh->rotation).translate(w, h, 0);
@@ -167,12 +171,12 @@ void Renderer::draw_mesh(Mesh* mesh) {
 
 void Renderer::set_color(uint32_t color, int x, int y) {
     if (x < 0 || x >= this->window_width) {
-        std::cerr << "draw_rect: " << x << "is out of bounds for window width " << this->window_width << ".";
+        std::cerr << "draw_rect: " << x << "is out of bounds for window width " << this->window_width << ".\n";
         return;
     }
 
     if (y < 0 || y >= this->window_height) {
-        std::cerr << "draw_rect: " << y << "is out of bounds for window height " << this->window_height << ".";
+        std::cerr << "draw_rect: " << y << "is out of bounds for window height " << this->window_height << ".\n";
         return;
     }
 

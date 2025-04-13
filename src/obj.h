@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <future>
+#include <vector>
 
-
-//Mesh load_obj(const std::string const);
+std::vector<std::string> split_by_char(const std::string& str, char c);
+Mesh load_obj(const std::string const);

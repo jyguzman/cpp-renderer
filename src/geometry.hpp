@@ -5,13 +5,15 @@
 #include <vector>
 
 struct Face {
-    double x, y, z;
+    int x, y, z;
 };
 
 struct Mesh {
     std::vector<Vec3> vertices;
     std::vector<Face> faces;
     Vec3 rotation;
+
+    bool empty();
 };
 
 #endif 
