@@ -12,7 +12,7 @@ endif()
 project ("renderer")
 
 add_executable (renderer "src/main.cpp"  "src/math.cpp" "src/geometry.cpp"
-"src/math.hpp" "src/renderer.cpp" "src/renderer.hpp")
+"src/math.hpp" "src/renderer.cpp" "src/renderer.hpp" "src/obj.cpp" "src/obj.h")
 
 # Define SDL3 path
 set(SDL3_DIR "C:/SDL3")

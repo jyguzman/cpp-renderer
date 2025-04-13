@@ -11,6 +11,7 @@ struct Face {
 struct Mesh {
     std::vector<Vec3> vertices;
     std::vector<Face> faces;
+    Vec3 rotation;
 };
 
 #endif 

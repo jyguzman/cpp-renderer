@@ -2,6 +2,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <iostream>
 #include "renderer.hpp"
+#include "math.hpp"
 
 int main(int argc, char* argv[]) {
     Renderer renderer(800, 600);

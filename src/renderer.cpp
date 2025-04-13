@@ -3,6 +3,13 @@
 #include "renderer.hpp"
 #include "geometry.hpp"
 
+Vec3 transform(Vec3 v, Vec3 rotation) {
+    return v
+        .rotate_x(rotation.x).rotate_y(rotation.y).rotate_z(rotation.z)
+        .translate(0, 0, 5)
+        .project(256);
+}
+
 Renderer::Renderer(int window_width, int window_height) {
     this->window_width = window_width;
     this->window_height = window_height;
@@ -31,15 +38,45 @@ Renderer::Renderer(int window_width, int window_height) {
     this->is_running = true;
 };
 
-void Renderer::render() {
-    SDL_RenderClear(this->renderer);
-    this->draw_line(10, 10, 100, 100, 0xff0000ff);
-    this->render_color_buffer();
-    SDL_RenderPresent(this->renderer);
-}
+Mesh cube(
+    {
+         Vec3 { -1, -1, -1 },
+         Vec3 { -1, 1, -1 },
+         Vec3 { 1, 1, -1 },
+         Vec3 { 1, -1, -1 },
+         Vec3 { 1, 1, 1 },
+         Vec3 { 1, -1, 1 },
+         Vec3 { -1, 1, 1 },
+         Vec3 { -1, -1, 1 },
+    },
+    {
+         Face { 1, 2, 3 },
+         Face { 1, 3, 4 },
+         Face { 4, 3, 5 },
+         Face { 4, 5, 6 },
+         Face { 6, 5, 7 },
+         Face { 6, 7, 8 },
+         Face { 8, 2, 1 },
+         Face { 2, 7, 5 },
+         Face { 2, 5, 3 },
+         Face { 6, 8, 1 },
+         Face { 6, 1, 4 },
+    },
+    Vec3{ 0, 0, 0 }
+    );
 
 void Renderer::update() {
 
+}
+
+void Renderer::render() {
+    //SDL_SetRenderDrawColor(this->renderer, 255, 0, 0, 255);
+    SDL_RenderClear(this->renderer);
+    this->clear_color_buffer(0);
+    this->draw_mesh(&cube);
+    //this->draw_line(10, 10, 100, 100, 0xff0000ff);
+    this->render_color_buffer();
+    SDL_RenderPresent(this->renderer);
 }
 
 void Renderer::process_input() {
@@ -62,13 +99,13 @@ void Renderer::set_target_fps(double fps) {
 }
 
 void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
-    if (x < 0 || x >= width) {
-        std::cerr << "draw_rect: " << x << "is out of bounds for width " << width << ".";
+    if (x < 0 || x >= this->window_width) {
+        std::cerr << "draw_rect: " << x << "is out of bounds for window width " << this->window_width << ".";
         return;
     }
 
-    if (y < 0 || y >= height) {
-        std::cerr << "draw_rect: " << y << "is out of bounds for height " << width << ".";
+    if (y < 0 || y >= this->window_height) {
+        std::cerr << "draw_rect: " << y << "is out of bounds for window height " << this->window_height << ".";
         return;
     }
 
@@ -99,11 +136,48 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 }
 
 void Renderer::draw_mesh(Mesh* mesh) {
+    auto vertices = mesh->vertices;
+    auto faces = mesh->faces;
 
-    return;
+    // Remove later
+    double w = this->window_width / 2;
+    double h = this->window_height / 2;
+    mesh->rotation = mesh->rotation.translate(0.01, 0.01, 0.01);
+
+    for (int i = 0; i < faces.size(); i++) {
+        Face f = faces[i];
+
+        // Remove '-1' after loading meshes
+        Vec3 v1 = vertices[f.x - 1];
+        Vec3 v2 = vertices[f.y - 1];
+        Vec3 v3 = vertices[f.z - 1];
+
+        Vec3 t1 = transform(v1, mesh->rotation).translate(w, h, 0);
+        Vec3 t2 = transform(v2, mesh->rotation).translate(w, h, 0);
+        Vec3 t3 = transform(v3, mesh->rotation).translate(w, h, 0);
+
+        this->draw_line(t1.x, t1.y, t2.x, t2.y, 0xffffffff);
+        this->draw_line(t1.x, t1.y, t3.x, t3.y, 0xffffffff);
+        this->draw_line(t2.x, t2.y, t3.x, t3.y, 0xffffffff);
+
+        this->draw_rect(t1.x, t1.y, 100, 100, 0xffffffff);
+        this->draw_rect(t2.x, t2.y, 100, 100, 0xffffffff);
+        this->draw_rect(t3.x, t3.y, 100, 100, 0xffffffff);
+
+    }
 }
 
 void Renderer::set_color(uint32_t color, int x, int y) {
+    if (x < 0 || x >= this->window_width) {
+        std::cerr << "draw_rect: " << x << "is out of bounds for window width " << this->window_width << ".";
+        return;
+    }
+
+    if (y < 0 || y >= this->window_height) {
+        std::cerr << "draw_rect: " << y << "is out of bounds for window height " << this->window_height << ".";
+        return;
+    }
+
     this->color_buffer[(this->window_width * x) + y] = color;
 }
 
@@ -118,9 +192,7 @@ void Renderer::render_color_buffer() {
 }
 
 void Renderer::clear_color_buffer(uint32_t color) {
-    for (int i = 0; i < this->window_height; i++) {
-        for (int j = 0; j < this->window_width; j++) {
-            this->set_color(color, i, j);
-        }
+    for (int i = 0; i < this->window_width * this->window_height; i++) {
+        this->color_buffer[i] = color;
     }
 }
