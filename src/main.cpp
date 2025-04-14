@@ -2,9 +2,9 @@
 #include <SDL3_image/SDL_image.h>
 #include <iostream>
 #include <filesystem>
-#include "renderer.hpp"
-#include "math.hpp"
-#include "obj.h"
+#include "include/renderer.hpp"
+#include "include/math.hpp"
+#include "include/obj.hpp"
 
 int main(int argc, char* argv[]) { /*
     auto cwd = std::filesystem::current_path();

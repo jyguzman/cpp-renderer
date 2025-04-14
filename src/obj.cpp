@@ -1,5 +1,5 @@
-#include "obj.h"
-#include "geometry.hpp"
+#include "include/obj.hpp"
+#include "include/geometry.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -30,9 +30,8 @@ Mesh load_obj(const std::string path) {
 		std::cerr << "Failed to open OBJ file: " << path;
 		return obj;
 	}
-
-	std::string line;
-	while (std::getline(file, line)) {
+	
+	for (std::string line; std::getline(file, line);) {
 		std::vector<std::string> parts = split_by_char(line, ' ');
 		if (parts.size() < 4) continue;
 		if (parts[0] == "v") {
