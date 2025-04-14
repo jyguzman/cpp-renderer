@@ -53,6 +53,7 @@ Mesh cube(
          Face { 4, 5, 6 },
          Face { 6, 5, 7 },
          Face { 6, 7, 8 },
+         Face {8, 7, 2},
          Face { 8, 2, 1 },
          Face { 2, 7, 5 },
          Face { 2, 5, 3 },
@@ -71,7 +72,7 @@ void Renderer::update() {
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&cube, true);
+    this->draw_mesh(&cone, true);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -118,7 +119,9 @@ bool is_pixel_in_triangle(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 p) {
 }
 
 void Renderer::draw_triangle(Vec3 v1, Vec3 v2, Vec3 v3, uint32_t color) {
-    
+    this->draw_line(v1.x, v1.y, v2.x, v2.y, color);
+    this->draw_line(v2.x, v2.y, v3.x, v3.y, color);
+    this->draw_line(v3.x, v3.y, v1.x, v1.y, color);
 }
 
 void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
@@ -142,67 +145,49 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 
 Vec3 transform(Vec3 v, Vec3 rotation) {
     return v
-        .rotate_x(rotation.x).rotate_y(rotation.y).rotate_z(rotation.z)
+        .rotate_x(rotation.x)
+        .rotate_y(rotation.y)
+        .rotate_z(rotation.z)
         .translate(0, 0, 5);
-        //.project(256);
 }
 
 void Renderer::draw_mesh(Mesh* mesh, bool should_cull) {
     auto vertices = mesh->vertices;
     auto faces = mesh->faces;
 
-    double w = this->window_width / 2;
-    double h = this->window_height / 2;
     mesh->rotation = mesh->rotation.translate(0.001, 0.001, 0.001);
 
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
 
-        Vec3 v1 = vertices[f.x - 1];
-        Vec3 v2 = vertices[f.y - 1];
-        Vec3 v3 = vertices[f.z - 1]; 
+        Vec3 v1 = vertices[f.x];
+        Vec3 v2 = vertices[f.y];
+        Vec3 v3 = vertices[f.z]; 
 
-        Vec3 t1 = transform(v1, mesh->rotation);//.translate(w, h, 0);
-        Vec3 t2 = transform(v2, mesh->rotation);//.translate(w, h, 0);
-        Vec3 t3 = transform(v3, mesh->rotation);//.translate(w, h, 0);
+        Vec3 t1 = transform(v1, mesh->rotation);
+        Vec3 t2 = transform(v2, mesh->rotation);
+        Vec3 t3 = transform(v3, mesh->rotation);
 
         if (should_cull) {
-            /*Vec3 a = v2 - &v1;
-            Vec3 b = v3 - &v1;*/
-            Vec3 a = t2 - &t1;
-            Vec3 b = t3 - &t1;
-            //std::cout << "A: " << a.x << " " << a.y << " " << a.z << "\n";
-            //std::cout << "B: " << b.x << " " << b.y << " " << b.z << "\n";
-            Vec3 n = a.cross(&b);// .translate(w, h, 0);
-            //std::cout << "N: " << n.x << " " << n.y << " " << n.z << "\n";
-            Vec3 camera = Vec3{ 0, 0, -5 };
-            Vec3 camera_ray = camera - &t1;
-            //Vec3 camera_ray = v1 - &camera;
-            double dot = n.dot(&camera_ray);
-            //std::cout << "Dot: " << dot << "\n";
+            Vec3 a = t2 - t1;
+            Vec3 b = t3 - t1;
+            Vec3 normal = a.cross(b);
+            Vec3 camera = Vec3{ 0, 0, 0 };
+            Vec3 camera_ray = camera - t1;
+            double dot = normal.dot(camera_ray);
             if (dot < 0) {
                 continue;
             }
         }
 
+        double w = this->window_width / 2;
+        double h = this->window_height / 2;
+
         Vec3 p1 = t1.project(512).translate(w, h, 0);
         Vec3 p2 = t2.project(512).translate(w, h, 0);
         Vec3 p3 = t3.project(512).translate(w, h, 0);
 
-        /*Vec3 t1 = transform(v1, mesh->rotation).translate(w, h, 0);
-        Vec3 t2 = transform(v2, mesh->rotation).translate(w, h, 0);
-        Vec3 t3 = transform(v3, mesh->rotation).translate(w, h, 0);*/
-
-        this->draw_line(p1.x, p1.y, p2.x, p2.y, 0xffffffff);
-        this->draw_line(p1.x, p1.y, p3.x, p3.y, 0xffffffff);
-        this->draw_line(p2.x, p2.y, p3.x, p3.y, 0xffffffff);
-
-        this->draw_rect(p1.x, p1.y, 100, 100, 0xffffffff);
-        this->draw_rect(p2.x, p2.y, 100, 100, 0xffffffff);
-        this->draw_rect(p3.x, p3.y, 100, 100, 0xffffffff);
-
-        //this->draw_rect(n.x, n.y, 100, 100, 0xffffffff);
-
+        this->draw_triangle(p1, p2, p3, 0xffffffff);
     }
 }
 

@@ -9,26 +9,31 @@ double Vec3::magnitude() {
 	return sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
 }
 
-Vec3 Vec3::operator+(Vec3* other) {
-	return Vec3{ this->x + other->x, this->y + other->y, this->z + other->z };
+Vec3 Vec3::operator+(Vec3 other) {
+	return Vec3{ this->x + other.x, this->y + other.y, this->z + other.z };
 }
 
-Vec3 Vec3::operator-(Vec3* other) {
-	return Vec3{ this->x - other->x, this->y - other->y, this->z - other->z };
+Vec3 Vec3::operator-(Vec3 other) {
+	return Vec3{ this->x - other.x, this->y - other.y, this->z - other.z };
 }
 
 Vec3 Vec3::scale(double x) {
 	return Vec3{ x * this->x, x * this->y, x*this->z };
 }
 
-double Vec3::dot(Vec3* other) {
-	return this->x*other->x + this->y*other->y + this->z*other->z;
+double Vec3::dot(Vec3 other) {
+	return this->x*other.x + this->y*other.y + this->z*other.z;
 }
 
-Vec3 Vec3::cross(Vec3* other) {
-	return Vec3{this->y*other->z - this->z*other->y, 
-				this->z*other->x - this->x*other->z,
-				this->x*other->y - this->y*other->x};
+Vec3 Vec3::cross(Vec3 other) {
+	return Vec3{this->y*other.z - this->z*other.y, 
+				this->z*other.x - this->x*other.z,
+				this->x*other.y - this->y*other.x};
+}
+
+Vec3 Vec3::normalize() {
+	double magnitude = this->magnitude();
+	return Vec3{ this->x / magnitude, this->y / magnitude, this->z / magnitude };
 }
 
 Vec3 Vec3::project(double factor) {
