@@ -38,6 +38,7 @@ Renderer::Renderer(int window_width, int window_height) {
         this->is_running = false;
     }
 
+    this->should_cull = true;
     this->color_buffer.resize(window_width * window_height);
     this->is_running = true;
 };
@@ -81,7 +82,7 @@ void Renderer::update() {
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&cube, true);
+    this->draw_mesh(&cube);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -94,8 +95,17 @@ void Renderer::process_input() {
             this->is_running = false;
             break;
         case SDL_EVENT_KEY_DOWN:
-            if (event.key.key == SDLK_ESCAPE) this->is_running = false;
-            break;
+            switch (event.key.key) {
+            case SDLK_ESCAPE:
+                this->is_running = false;
+                break;
+            case SDLK_C:
+                this->should_cull = true;
+                break;
+            case SDLK_D:
+                this->should_cull = false;
+                break;
+            }
         }
     }
 
@@ -156,7 +166,7 @@ Vec3 transform(Vec3 v, Vec3 rotation) {
         .translate(0, 0, 5);
 }
 
-void Renderer::draw_mesh(Mesh* mesh, bool should_cull) {
+void Renderer::draw_mesh(Mesh* mesh) {
     auto vertices = mesh->vertices;
     auto faces = mesh->faces;
 
@@ -173,7 +183,7 @@ void Renderer::draw_mesh(Mesh* mesh, bool should_cull) {
         Vec3 t2 = transform(v2, mesh->rotation);
         Vec3 t3 = transform(v3, mesh->rotation);
 
-        if (should_cull) {
+        if (this->should_cull) {
             Vec3 a = (t2 - t1).normalize();
             Vec3 b = (t3 - t1).normalize();
             Vec3 normal = a.cross(b).normalize();
