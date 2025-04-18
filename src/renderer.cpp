@@ -5,6 +5,15 @@
 #include "include/geometry.hpp"
 #include "include/obj.hpp"
 
+Vec3 triangle_midpoint(double x0, double y0, double x1, double y1, double x2, double y2) {
+    std::vector<double> y_vals = { y0, y1, y2 };
+    std::sort(y_vals.begin(), y_vals.end());
+
+
+
+    return Vec3{ 0, 0, 0 };
+}
+
 Renderer::Renderer(int window_width, int window_height) {
     this->window_width = window_width;
     this->window_height = window_height;
@@ -72,7 +81,7 @@ void Renderer::update() {
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&cone, true);
+    this->draw_mesh(&cube, true);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -112,10 +121,6 @@ void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
             this->set_color(color, i, j);
         }
     }
-}
-
-bool is_pixel_in_triangle(Vec3 v1, Vec3 v2, Vec3 v3, Vec3 p) {
-    return false;
 }
 
 void Renderer::draw_triangle(Vec3 v1, Vec3 v2, Vec3 v3, uint32_t color) {
@@ -160,18 +165,18 @@ void Renderer::draw_mesh(Mesh* mesh, bool should_cull) {
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
 
-        Vec3 v1 = vertices[f.x];
-        Vec3 v2 = vertices[f.y];
-        Vec3 v3 = vertices[f.z]; 
+        Vec3 v1 = vertices[f.x - 1];
+        Vec3 v2 = vertices[f.y - 1];
+        Vec3 v3 = vertices[f.z - 1]; 
 
         Vec3 t1 = transform(v1, mesh->rotation);
         Vec3 t2 = transform(v2, mesh->rotation);
         Vec3 t3 = transform(v3, mesh->rotation);
 
         if (should_cull) {
-            Vec3 a = t2 - t1;
-            Vec3 b = t3 - t1;
-            Vec3 normal = a.cross(b);
+            Vec3 a = (t2 - t1).normalize();
+            Vec3 b = (t3 - t1).normalize();
+            Vec3 normal = a.cross(b).normalize();
             Vec3 camera = Vec3{ 0, 0, 0 };
             Vec3 camera_ray = camera - t1;
             double dot = normal.dot(camera_ray);
@@ -183,9 +188,9 @@ void Renderer::draw_mesh(Mesh* mesh, bool should_cull) {
         double w = this->window_width / 2;
         double h = this->window_height / 2;
 
-        Vec3 p1 = t1.project(512).translate(w, h, 0);
-        Vec3 p2 = t2.project(512).translate(w, h, 0);
-        Vec3 p3 = t3.project(512).translate(w, h, 0);
+        Vec3 p1 = t1.project(256).translate(w, h, 0);
+        Vec3 p2 = t2.project(256).translate(w, h, 0);
+        Vec3 p3 = t3.project(256).translate(w, h, 0);
 
         this->draw_triangle(p1, p2, p3, 0xffffffff);
     }

@@ -8,8 +8,8 @@
 struct Renderer {
 	bool is_running;
 	SDL_Window* window;
-	int window_width, window_height;
 	SDL_Renderer* renderer;
+	int window_width, window_height;
 	std::vector<uint32_t> color_buffer;
 
 	Renderer(int window_width, int window_height);
