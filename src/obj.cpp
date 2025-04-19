@@ -24,7 +24,7 @@ std::vector<std::string> split_by_char(const std::string& str, char c) {
 
 // Only parse "v" and "f" lines for OBJ. Assumes trinagular faces
 Mesh load_obj(const std::string path) {
-	Mesh obj;
+	Mesh obj({}, {}, Vec3(0, 0, 0));
 	std::ifstream file(path);
 	if (!file.is_open()) {
 		std::cerr << "Failed to open OBJ file: " << path;
@@ -35,9 +35,9 @@ Mesh load_obj(const std::string path) {
 		std::vector<std::string> parts = split_by_char(line, ' ');
 		if (parts.size() < 4) continue;
 		if (parts[0] == "v") {
-			double x = std::atof(parts[1].data());
-			double y = std::atof(parts[2].data());
-			double z = std::atof(parts[3].data());
+			float x = (float)std::atof(parts[1].data());
+			float y = (float)std::atof(parts[2].data());
+			float z = (float)std::atof(parts[3].data());
 			obj.vertices.push_back(Vec3{ x, y, z });
 			continue;
 		}

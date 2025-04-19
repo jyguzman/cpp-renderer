@@ -9,6 +9,6 @@
 #include <vector>
 
 std::vector<std::string> split_by_char(const std::string& str, char c);
-Mesh load_obj(const std::string const);
+Mesh load_obj(const std::string);
 
 #endif

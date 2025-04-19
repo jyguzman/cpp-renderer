@@ -13,7 +13,9 @@ struct Mesh {
     std::vector<Face> faces;
     Vec3 rotation;
 
-    bool empty();
+    Mesh();
+    Mesh(std::vector<Vec3> vertices, std::vector<Face> faces, Vec3 rotation);
+    bool empty() const;
 };
 
 #endif 

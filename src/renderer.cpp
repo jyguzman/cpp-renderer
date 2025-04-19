@@ -5,11 +5,9 @@
 #include "include/geometry.hpp"
 #include "include/obj.hpp"
 
-Vec3 triangle_midpoint(double x0, double y0, double x1, double y1, double x2, double y2) {
+static Vec3 triangle_midpoint(double x0, double y0, double x1, double y1, double x2, double y2) {
     std::vector<double> y_vals = { y0, y1, y2 };
     std::sort(y_vals.begin(), y_vals.end());
-
-
 
     return Vec3{ 0, 0, 0 };
 }
@@ -42,8 +40,6 @@ Renderer::Renderer(int window_width, int window_height) {
     this->color_buffer.resize(window_width * window_height);
     this->is_running = true;
 };
-
-
 
 Mesh cube(
     {
@@ -163,14 +159,14 @@ Vec3 transform(Vec3 v, Vec3 rotation) {
         .rotate_x(rotation.x)
         .rotate_y(rotation.y)
         .rotate_z(rotation.z)
-        .translate(0, 0, 5);
+        .translate(Vec3(0, 0, 5));
 }
 
 void Renderer::draw_mesh(Mesh* mesh) {
-    auto vertices = mesh->vertices;
-    auto faces = mesh->faces;
+    auto& vertices = mesh->vertices;
+    auto& faces = mesh->faces;
 
-    mesh->rotation = mesh->rotation.translate(0.001, 0.001, 0.001);
+    mesh->rotation = mesh->rotation.translate(Vec3(0.001, 0.001, 0.001));
 
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
@@ -187,7 +183,7 @@ void Renderer::draw_mesh(Mesh* mesh) {
             Vec3 a = (t2 - t1).normalize();
             Vec3 b = (t3 - t1).normalize();
             Vec3 normal = a.cross(b).normalize();
-            Vec3 camera = Vec3{ 0, 0, 0 };
+            Vec3 camera = Vec3(0, 0, 0);
             Vec3 camera_ray = camera - t1;
             double dot = normal.dot(camera_ray);
             if (dot < 0) {
@@ -195,12 +191,12 @@ void Renderer::draw_mesh(Mesh* mesh) {
             }
         }
 
-        double w = this->window_width / 2;
-        double h = this->window_height / 2;
+        float w = this->window_width / 2;
+        float h = this->window_height / 2;
 
-        Vec3 p1 = t1.project(256).translate(w, h, 0);
-        Vec3 p2 = t2.project(256).translate(w, h, 0);
-        Vec3 p3 = t3.project(256).translate(w, h, 0);
+        Vec3 p1 = t1.project(256).translate(Vec3(w, h, 0));
+        Vec3 p2 = t2.project(256).translate(Vec3(w, h, 0));
+        Vec3 p3 = t3.project(256).translate(Vec3(w, h, 0));
 
         this->draw_triangle(p1, p2, p3, 0xffffffff);
     }
