@@ -1,15 +1,52 @@
 #include <SDL3/SDL.h>
 #include <iostream>
-#include "include/scene.hpp"   
 #include "include/renderer.hpp"
 #include "include/geometry.hpp"
 #include "include/obj.hpp"
 
-static Vec3 triangle_midpoint(double x0, double y0, double x1, double y1, double x2, double y2) {
-    std::vector<double> y_vals = { y0, y1, y2 };
-    std::sort(y_vals.begin(), y_vals.end());
+static bool vec2_sort(Vec2 const& lhs, Vec2 const& rhs) {
+    return lhs.y < rhs.y;
+}
 
-    return Vec3{ 0, 0, 0 };
+static Vec2 triangle_midpoint(Vec2 p1, Vec2 p2, Vec2 p3) {
+    float y1 = p1.y;
+    float y2 = p2.y;
+    float y3 = p3.y;
+    float x1 = p1.x;
+    float x3 = p3.x;
+
+    float mid_x = x1 + (x3 - x1) * ((y2 - y1) / (y3 - y1));
+    
+    return Vec2(mid_x, y2);
+}
+
+void Renderer::draw_triangle_flat_top(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
+    float a = p2.y - p1.y;
+    float b = p3.y - p1.y;
+    float inv_slope_one = (p3.x - p1.x) / (p3.y - p1.y);
+    float inv_slope_two = (p3.x - p2.x) / (p3.y - p2.y);
+    float start_x = p3.x;
+    float end_x = p3.x;
+    for (int y = (int)p3.y; y >= (int)p1.y; y--) {
+        this->draw_line(start_x, y, end_x, y, color);
+        start_x -= inv_slope_one;
+        end_x -= inv_slope_two;
+    }
+}
+
+void Renderer::draw_triangle_flat_bottom(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
+    float denom1 = p2.y - p1.y;
+    float denom2 = p3.y - p1.y;
+
+    float inv_slope_one = (p2.x - p1.x) / denom1;
+    float inv_slope_two = (p3.x - p1.x) / denom2;
+    float start_x = p1.x;
+    float end_x = p1.x;
+    for (int y = p1.y; y <= p3.y; ++y) {
+        this->draw_line(start_x, y, end_x, y, color);
+        start_x += inv_slope_one;
+        end_x += inv_slope_two;
+    }
 }
 
 Renderer::Renderer(int window_width, int window_height) {
@@ -39,37 +76,9 @@ Renderer::Renderer(int window_width, int window_height) {
     this->should_cull = true;
     this->color_buffer.resize(window_width * window_height);
     this->is_running = true;
-};
+}
 
-Mesh cube(
-    {
-         Vec3 { -1, -1, -1 },
-         Vec3 { -1, 1, -1 },
-         Vec3 { 1, 1, -1 },
-         Vec3 { 1, -1, -1 },
-         Vec3 { 1, 1, 1 },
-         Vec3 { 1, -1, 1 },
-         Vec3 { -1, 1, 1 },
-         Vec3 { -1, -1, 1 },
-    },
-    {
-         Face { 1, 2, 3 },
-         Face { 1, 3, 4 },
-         Face { 4, 3, 5 },
-         Face { 4, 5, 6 },
-         Face { 6, 5, 7 },
-         Face { 6, 7, 8 },
-         Face {8, 7, 2},
-         Face { 8, 2, 1 },
-         Face { 2, 7, 5 },
-         Face { 2, 5, 3 },
-         Face { 6, 8, 1 },
-         Face { 6, 1, 4 },
-    },
-    Vec3{ 0, 0, 0 }
-    );
-
-Mesh cone = load_obj("../../../assets/cone.obj");
+Mesh mesh = load_obj("../../../assets/cube.obj");
 
 void Renderer::update() {
 
@@ -78,7 +87,7 @@ void Renderer::update() {
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&cube);
+    this->draw_mesh(&mesh);
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -129,10 +138,21 @@ void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
     }
 }
 
-void Renderer::draw_triangle(Vec3 v1, Vec3 v2, Vec3 v3, uint32_t color) {
-    this->draw_line(v1.x, v1.y, v2.x, v2.y, color);
-    this->draw_line(v2.x, v2.y, v3.x, v3.y, color);
-    this->draw_line(v3.x, v3.y, v1.x, v1.y, color);
+void Renderer::draw_triangle(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
+    this->draw_line(p1.x, p1.y, p2.x, p2.y, color);
+    this->draw_line(p2.x, p2.y, p3.x, p3.y, color);
+    this->draw_line(p3.x, p3.y, p1.x, p1.y, color);
+    std::vector<Vec2> points = { p1, p2, p3 };
+    std::sort(points.begin(), points.end(), &vec2_sort);
+    if (points.at(1).y == points.at(2).y) {
+        this->draw_triangle_flat_bottom(points.at(0), points.at(1), points.at(2), color);
+    } else if (points.at(0).y == points.at(1).y) {
+        this->draw_triangle_flat_top(points.at(0), points.at(1), points.at(2), color);
+    } else {
+        Vec2 mp = triangle_midpoint(points.at(0), points.at(1), points.at(2));
+        this->draw_triangle_flat_bottom(points.at(0), points.at(1), mp, color);
+        this->draw_triangle_flat_top(points.at(1), mp, points.at(2), color);
+    }
 }
 
 void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
@@ -141,20 +161,25 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 
     int side_len = abs(delta_x) > abs(delta_y) ? abs(delta_x) : abs(delta_y);
 
-    double x_inc = delta_x / (double)side_len;
-    double y_inc = delta_y / (double)side_len;
+    float x_inc = delta_x / (float)side_len;
+    float y_inc = delta_y / (float)side_len;
 
-    double curr_x = x0;
-    double curr_y = y0;
+    float curr_x = x0;
+    float curr_y = y0;
 
     for (int i = 0; i < side_len; i++) {
-        this->set_color(color, round(curr_x), round(curr_y));
+        int x = round(curr_x);
+        int y = round(curr_y);
+        //this->set_color(color, round(curr_x), round(curr_y));
+        if (x >= 0 && x < this->window_width && y >= 0 && y < this->window_height) {
+            this->set_color(color, x, y);
+        }
         curr_x += x_inc;
         curr_y += y_inc;
     }
 }
 
-Vec3 transform(Vec3 v, Vec3 rotation) {
+static Vec3 transform(Vec3 v, Vec3 rotation) {
     return v
         .rotate_x(rotation.x)
         .rotate_y(rotation.y)
@@ -171,9 +196,9 @@ void Renderer::draw_mesh(Mesh* mesh) {
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
 
-        Vec3 v1 = vertices[f.x - 1];
-        Vec3 v2 = vertices[f.y - 1];
-        Vec3 v3 = vertices[f.z - 1]; 
+        Vec3 v1 = vertices[f.x];
+        Vec3 v2 = vertices[f.y];
+        Vec3 v3 = vertices[f.z]; 
 
         Vec3 t1 = transform(v1, mesh->rotation);
         Vec3 t2 = transform(v2, mesh->rotation);
@@ -191,12 +216,12 @@ void Renderer::draw_mesh(Mesh* mesh) {
             }
         }
 
-        float w = this->window_width / 2;
-        float h = this->window_height / 2;
+        float w = this->window_width / 2.0;
+        float h = this->window_height / 2.0;
 
-        Vec3 p1 = t1.project(256).translate(Vec3(w, h, 0));
-        Vec3 p2 = t2.project(256).translate(Vec3(w, h, 0));
-        Vec3 p3 = t3.project(256).translate(Vec3(w, h, 0));
+        Vec2 p1 = t1.project(256).translate(Vec3(w, h, 0)).to_vec2();
+        Vec2 p2 = t2.project(256).translate(Vec3(w, h, 0)).to_vec2();
+        Vec2 p3 = t3.project(256).translate(Vec3(w, h, 0)).to_vec2();
 
         this->draw_triangle(p1, p2, p3, 0xffffffff);
     }
@@ -213,7 +238,7 @@ void Renderer::set_color(uint32_t color, int x, int y) {
         return;
     }
 
-    this->color_buffer[(this->window_width * x) + y] = color;
+    this->color_buffer[(this->window_width * y) + x] = color;
 }
 
 void Renderer::render_color_buffer() {
@@ -228,7 +253,9 @@ void Renderer::render_color_buffer() {
 }
 
 void Renderer::clear_color_buffer(uint32_t color) {
-    for (int i = 0; i < this->window_width * this->window_height; i++) {
-        this->color_buffer[i] = color;
+    for (int y = 0; y < this->window_height; y++) {
+        for (int x = 0; x < this->window_width; x++) {
+            this->color_buffer[(this->window_width * y) + x] = color;
+        }
     }
 }

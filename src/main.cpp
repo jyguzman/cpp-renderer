@@ -7,7 +7,7 @@
 #include "include/obj.hpp"
 
 int main(int argc, char* argv[]) { 
-    Renderer renderer(800, 600);
+    Renderer renderer(1000, 800);
     while (renderer.is_running) {
         renderer.process_input();
         renderer.update();

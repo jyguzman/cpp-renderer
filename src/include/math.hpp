@@ -34,6 +34,7 @@ struct Vec3 {
     Vec3 rotate_x(float angle);
     Vec3 rotate_y(float angle);
     Vec3 rotate_z(float angle);
+    Vec2 to_vec2();
 };
 
 struct Mat4 {

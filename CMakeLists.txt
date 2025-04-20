@@ -13,7 +13,7 @@ project ("renderer")
 
 add_executable (renderer "src/main.cpp"  "src/math.cpp" "src/geometry.cpp"
 "src/include/math.hpp" "src/renderer.cpp" "src/include/renderer.hpp" "src/obj.cpp" 
-"src/include/obj.hpp" "src/scene.cpp")
+"src/include/obj.hpp" )
 
 # Define SDL3 path
 set(SDL3_DIR "C:/SDL3")

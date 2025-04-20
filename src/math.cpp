@@ -49,7 +49,7 @@ Vec2 Vec2::rotate_x(float angle) {
 Vec2 Vec2::rotate_y(float angle) {
 	/*float x = this->x * cos(angle) - this->z * sin(angle);
 	float z = this->x * sin(angle) + this->z * cos(angle);*/
-	return Vec2{ x, this->y};
+	return Vec2(x, this->y);
 }
 
 Vec3::Vec3() {
@@ -100,7 +100,8 @@ Vec3 Vec3::normalize() {
 }
 
 Vec3 Vec3::project(float factor) {
-	float z = this->z < (float)0.0001 ? (float)0.0001 : this->z; 
+	if (this->z <= 0.001) return Vec3(0, 0, this->z);
+	//float z = this->z < (float)0.0001 ? (float)0.0001 : this->z; 
 	return Vec3(factor * this->x / z, factor * this->y / z, 0);
 }
 
@@ -120,6 +121,10 @@ Vec3 Vec3::rotate_z(float angle) {
 	float x = this->x * cos(angle) - this->y * sin(angle);
 	float y = this->x * sin(angle) + this->y * cos(angle);
 	return Vec3(x, y, this->z);
+}
+
+Vec2 Vec3::to_vec2() {
+	return Vec2(this->x, this->y);
 }
 
 Mat4::Mat4(float data[16]) {
