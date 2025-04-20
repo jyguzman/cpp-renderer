@@ -100,7 +100,6 @@ Vec3 Vec3::normalize() {
 }
 
 Vec3 Vec3::project(float factor) {
-	if (this->z <= 0.001) return Vec3(0, 0, this->z);
 	//float z = this->z < (float)0.0001 ? (float)0.0001 : this->z; 
 	return Vec3(factor * this->x / z, factor * this->y / z, 0);
 }

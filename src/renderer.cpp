@@ -4,48 +4,42 @@
 #include "include/geometry.hpp"
 #include "include/obj.hpp"
 
-static bool vec2_sort(Vec2 const& lhs, Vec2 const& rhs) {
-    return lhs.y < rhs.y;
+static void int_swap(int* a, int* b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
 
-static Vec2 triangle_midpoint(Vec2 p1, Vec2 p2, Vec2 p3) {
-    float y1 = p1.y;
-    float y2 = p2.y;
-    float y3 = p3.y;
-    float x1 = p1.x;
-    float x3 = p3.x;
-
-    float mid_x = x1 + (x3 - x1) * ((y2 - y1) / (y3 - y1));
-    
+static Vec2 triangle_midpoint(int x1, int y1, int x2, int y2, int x3, int y3) {
+    float mid_x = (((x3 - x1) * (y2 - y1)) / (y3 - y1)) + x1;
     return Vec2(mid_x, y2);
 }
 
-void Renderer::draw_triangle_flat_top(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
-    float a = p2.y - p1.y;
-    float b = p3.y - p1.y;
-    float inv_slope_one = (p3.x - p1.x) / (p3.y - p1.y);
-    float inv_slope_two = (p3.x - p2.x) / (p3.y - p2.y);
-    float start_x = p3.x;
-    float end_x = p3.x;
-    for (int y = (int)p3.y; y >= (int)p1.y; y--) {
-        this->draw_line(start_x, y, end_x, y, color);
-        start_x -= inv_slope_one;
-        end_x -= inv_slope_two;
+void Renderer::draw_triangle_flat_bottom(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) {
+    float inv_slope_1 = (float)(x2 - x1) / (y2 - y1);
+    float inv_slope_2 = (float)(x3 - x1) / (y3 - y1);
+
+    float start_x = x1;
+    float end_x = x1;
+
+    for (int y = y1; y <= y3; y++) {
+        draw_line(start_x, y, end_x, y, color);
+        start_x += inv_slope_1;
+        end_x += inv_slope_2;
     }
 }
 
-void Renderer::draw_triangle_flat_bottom(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
-    float denom1 = p2.y - p1.y;
-    float denom2 = p3.y - p1.y;
+void Renderer::draw_triangle_flat_top(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) {
+    float inv_slope_1 = (float)(x3 - x1) / (y3 - y1);
+    float inv_slope_2 = (float)(x3 - x2) / (y3 - y2);
 
-    float inv_slope_one = (p2.x - p1.x) / denom1;
-    float inv_slope_two = (p3.x - p1.x) / denom2;
-    float start_x = p1.x;
-    float end_x = p1.x;
-    for (int y = p1.y; y <= p3.y; ++y) {
-        this->draw_line(start_x, y, end_x, y, color);
-        start_x += inv_slope_one;
-        end_x += inv_slope_two;
+    float start_x = x3;
+    float end_x = x3;
+
+    for (int y = y3; y >= y1; --y) {
+        draw_line(start_x, y, end_x, y, color);
+        start_x -= inv_slope_1;
+        end_x -= inv_slope_2;
     }
 }
 
@@ -138,21 +132,40 @@ void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
     }
 }
 
-void Renderer::draw_triangle(Vec2 p1, Vec2 p2, Vec2 p3, uint32_t color) {
-    this->draw_line(p1.x, p1.y, p2.x, p2.y, color);
-    this->draw_line(p2.x, p2.y, p3.x, p3.y, color);
-    this->draw_line(p3.x, p3.y, p1.x, p1.y, color);
-    std::vector<Vec2> points = { p1, p2, p3 };
-    std::sort(points.begin(), points.end(), &vec2_sort);
-    if (points.at(1).y == points.at(2).y) {
-        this->draw_triangle_flat_bottom(points.at(0), points.at(1), points.at(2), color);
-    } else if (points.at(0).y == points.at(1).y) {
-        this->draw_triangle_flat_top(points.at(0), points.at(1), points.at(2), color);
-    } else {
-        Vec2 mp = triangle_midpoint(points.at(0), points.at(1), points.at(2));
-        this->draw_triangle_flat_bottom(points.at(0), points.at(1), mp, color);
-        this->draw_triangle_flat_top(points.at(1), mp, points.at(2), color);
+void Renderer::draw_filled_triangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) {
+    if (y1 > y2) {
+        int_swap(&y1, &y2);
+        int_swap(&x1, &x2);
     }
+    if (y2 > y3) {
+        int_swap(&y2, &y3);
+        int_swap(&x2, &x3);
+    }
+    if (y1 > y2) {
+        int_swap(&y1, &y2);
+        int_swap(&x1, &x2);
+    }
+
+    /*this->draw_line(x1, y1, x2, y2, color);
+    this->draw_line(x2, y2, x3, y3, color);
+    this->draw_line(x3, y3, x1, y1, color);*/
+
+    if (y2 == y3) {
+        this->draw_triangle_flat_bottom(x1, y1, x2, y2, x3, y3, color);
+    } else if (y1 == y2) {
+        this->draw_triangle_flat_top(x1, y1, x2, y2, x3, y3, color);
+    } else {
+        int My = y2;
+        int Mx = (((x3 - x1) * (y2 - y1)) / (y3 - y1)) + x1;
+        this->draw_triangle_flat_bottom(x1, y1, x2, y2, Mx, My, color);
+        this->draw_triangle_flat_top(x2, y2, Mx, My, x3, y3, color);
+    }
+}
+
+void Renderer::draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color) {
+    this->draw_line(x1, y1, x2, y2, color);
+    this->draw_line(x2, y2, x3, y3, color);
+    this->draw_line(x3, y3, x1, y1, color);
 }
 
 void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
@@ -170,7 +183,6 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
     for (int i = 0; i < side_len; i++) {
         int x = round(curr_x);
         int y = round(curr_y);
-        //this->set_color(color, round(curr_x), round(curr_y));
         if (x >= 0 && x < this->window_width && y >= 0 && y < this->window_height) {
             this->set_color(color, x, y);
         }
@@ -180,18 +192,19 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 }
 
 static Vec3 transform(Vec3 v, Vec3 rotation) {
-    return v
+    Vec3 t = v
         .rotate_x(rotation.x)
         .rotate_y(rotation.y)
         .rotate_z(rotation.z)
         .translate(Vec3(0, 0, 5));
+    return t;
 }
 
 void Renderer::draw_mesh(Mesh* mesh) {
     auto& vertices = mesh->vertices;
     auto& faces = mesh->faces;
 
-    mesh->rotation = mesh->rotation.translate(Vec3(0.001, 0.001, 0.001));
+    mesh->rotation = mesh->rotation + Vec3(0.001, 0.001, 0.001);
 
     for (int i = 0; i < faces.size(); i++) {
         Face f = faces[i];
@@ -218,12 +231,15 @@ void Renderer::draw_mesh(Mesh* mesh) {
 
         float w = this->window_width / 2.0;
         float h = this->window_height / 2.0;
+        float fov_factor = 256;
 
-        Vec2 p1 = t1.project(256).translate(Vec3(w, h, 0)).to_vec2();
-        Vec2 p2 = t2.project(256).translate(Vec3(w, h, 0)).to_vec2();
-        Vec2 p3 = t3.project(256).translate(Vec3(w, h, 0)).to_vec2();
-
-        this->draw_triangle(p1, p2, p3, 0xffffffff);
+        Vec2 p1 = Vec2((fov_factor * t1.x) / t1.z, (fov_factor * t1.y) / t1.z) + Vec2(w, h);
+        Vec2 p2 = Vec2((fov_factor * t2.x) / t2.z, (fov_factor * t2.y) / t2.z) + Vec2(w, h);
+        Vec2 p3 = Vec2((fov_factor * t3.x) / t3.z, (fov_factor * t3.y) / t3.z) + Vec2(w, h);
+        
+        this->draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
+        //this->draw_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
+        //this->draw_triangle(p1, p2, p3, 0xffffffff);
     }
 }
 

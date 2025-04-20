@@ -18,11 +18,12 @@ struct Renderer {
 	void update();
 	void process_input();
 	void set_target_fps(double fps);
-	void draw_triangle_flat_top(Vec2 p1, Vec2 p2, Vec2 midpoint, uint32_t color);
-	void draw_triangle_flat_bottom(Vec2 p1, Vec2 p2, Vec2 midpoint, uint32_t color);
-	void draw_triangle(Vec2 v1, Vec2 v2, Vec2 v3, uint32_t color);
+	void draw_triangle_flat_top(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color);
+	void draw_triangle_flat_bottom(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color);
+	void draw_triangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color);
+	void draw_filled_triangle(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t color);
 	void draw_rect(int x, int y, int width, int height, uint32_t color);
-	void draw_line(int x0, int y0, int x1, int y1, uint32_t color);
+	void draw_line(int x1, int y1, int x2, int y2, uint32_t color);
 	void draw_mesh(Mesh* mesh);
 	void set_color(uint32_t, int x, int y);
 	void clear_color_buffer(uint32_t color);
