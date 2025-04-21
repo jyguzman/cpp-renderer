@@ -28,7 +28,7 @@ struct Renderer {
 	void draw_rect(int x, int y, int width, int height, uint32_t color);
 	void draw_line(int x1, int y1, int x2, int y2, uint32_t color);
 	void draw_mesh(Mesh* mesh);
-	void set_color(uint32_t, int x, int y);
+	void set_color(int x, int y, uint32_t color);
 	void clear_color_buffer(uint32_t color);
 	void render_color_buffer();
 };

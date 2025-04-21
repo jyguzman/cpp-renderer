@@ -23,7 +23,7 @@ void Renderer::draw_triangle_flat_bottom(int x1, int y1, int x2, int y2, int x3,
     float end_x = x1;
 
     for (int y = y1; y <= y3; ++y) {
-        draw_line(start_x, y, end_x, y, color);
+        this->draw_line(start_x, y, end_x, y, color);
         start_x += inv_slope_1;
         end_x += inv_slope_2;
     }
@@ -37,7 +37,7 @@ void Renderer::draw_triangle_flat_top(int x1, int y1, int x2, int y2, int x3, in
     float end_x = x3;
 
     for (int y = y3; y >= y1; --y) {
-        draw_line(start_x, y, end_x, y, color);
+        this->draw_line(start_x, y, end_x, y, color);
         start_x -= inv_slope_1;
         end_x -= inv_slope_2;
     }
@@ -67,10 +67,12 @@ Renderer::Renderer(int window_width, int window_height) {
         this->is_running = false;
     }
 
-    this->texture = SDL_CreateTexture(this->renderer,
+    this->texture = SDL_CreateTexture(
+        this->renderer,
         SDL_PIXELFORMAT_ABGR8888,
         SDL_TEXTUREACCESS_STREAMING,
-        this->window_width, this->window_height);
+        this->window_width, this->window_height
+    );
     this->mesh = load_obj("../../../assets/cube.obj");
     this->triangles.resize(0);
     this->should_cull = true;
@@ -83,17 +85,19 @@ void Renderer::update() {
 }
 
 void Renderer::render() {
-    SDL_RenderClear(this->renderer);
-    this->clear_color_buffer(0);
     for (auto &points: this->triangles) {
         Vec2 p1 = points.at(0);
         Vec2 p2 = points.at(1);
         Vec2 p3 = points.at(2);
         this->draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
         this->draw_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xFF000000);
+        this->draw_rect(p1.x, p1.y, 5, 5, 0xff0000ff);
+        this->draw_rect(p2.x, p2.y, 5, 5, 0xff0000ff);
+        this->draw_rect(p3.x, p3.y, 5, 5, 0xff0000ff);
     }
     this->triangles.clear();
     this->render_color_buffer();
+    clear_color_buffer(0xFF000000);
     SDL_RenderPresent(this->renderer);
 }
 
@@ -136,9 +140,9 @@ void Renderer::draw_rect(int x, int y, int width, int height, uint32_t color) {
         return;
     }
 
-    for (int i = y; i < height; i++) {
-        for (int j = x; j < width; j++) {
-            this->set_color(color, i, j);
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            this->set_color(x + i, y + j, color);
         }
     }
 }
@@ -190,19 +194,18 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
     for (int i = 0; i <= side_len; i++) {
         int x = round(curr_x);
         int y = round(curr_y);
-        this->set_color(color, x, y);
+        this->set_color(x, y, color);
         curr_x += x_inc;
         curr_y += y_inc;
     }
 }
 
 static Vec3 transform(Vec3 v, Vec3 rotation) {
-    Vec3 t = v
+    return v
         .rotate_x(rotation.x)
         .rotate_y(rotation.y)
         .rotate_z(rotation.z)
         .translate(Vec3(0, 0, 5));
-    return t;
 }
 
 void Renderer::draw_mesh(Mesh* mesh) {
@@ -240,17 +243,19 @@ void Renderer::draw_mesh(Mesh* mesh) {
         Vec2 p3 = Vec2((fov_factor * t3.x) / t3.z, (fov_factor * t3.y) / t3.z) + Vec2(w, h);
         
         this->triangles.push_back({ p1, p2, p3 });
+     
+
     }
 }
 
-void Renderer::set_color(uint32_t color, int x, int y) {
+void Renderer::set_color(int x, int y, uint32_t color) {
     if (x < 0 || x >= this->window_width) {
-        std::cerr << "set_color: " << x << "is out of bounds for window width " << this->window_width << ".\n";
+        std::cerr << "set_color: x: " << x << " is out of bounds for window width " << this->window_width << ".\n";
         return;
     }
 
     if (y < 0 || y >= this->window_height) {
-        std::cerr << "set_color: " << y << "is out of bounds for window height " << this->window_height << ".\n";
+        std::cerr << "set_color: y: " << y << " is out of bounds for window height " << this->window_height << ".\n";
         return;
     }
 
