@@ -45,9 +45,9 @@ Mesh load_obj(const std::string path) {
 			std::string f1 = split_by_char(parts[1], '/')[0];
 			std::string f2 = split_by_char(parts[2], '/')[0];
 			std::string f3 = split_by_char(parts[3], '/')[0];
-			int x = std::atoi(f1.data()) - 1;
-			int y = std::atoi(f2.data()) - 1;
-			int z = std::atoi(f3.data()) - 1;
+			int x = std::atoi(f1.data());
+			int y = std::atoi(f2.data());
+			int z = std::atoi(f3.data());
 			obj.faces.push_back(Face{ x, y, z });
 		}
 	}

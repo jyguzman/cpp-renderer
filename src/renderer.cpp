@@ -22,7 +22,7 @@ void Renderer::draw_triangle_flat_bottom(int x1, int y1, int x2, int y2, int x3,
     float start_x = x1;
     float end_x = x1;
 
-    for (int y = y1; y <= y3; y++) {
+    for (int y = y1; y <= y3; ++y) {
         draw_line(start_x, y, end_x, y, color);
         start_x += inv_slope_1;
         end_x += inv_slope_2;
@@ -67,21 +67,32 @@ Renderer::Renderer(int window_width, int window_height) {
         this->is_running = false;
     }
 
+    this->texture = SDL_CreateTexture(this->renderer,
+        SDL_PIXELFORMAT_ABGR8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        this->window_width, this->window_height);
+    this->mesh = load_obj("../../../assets/cube.obj");
+    this->triangles.resize(0);
     this->should_cull = true;
     this->color_buffer.resize(window_width * window_height);
     this->is_running = true;
 }
 
-Mesh mesh = load_obj("../../../assets/cube.obj");
-
 void Renderer::update() {
-
+    this->draw_mesh(&this->mesh);
 }
 
 void Renderer::render() {
     SDL_RenderClear(this->renderer);
     this->clear_color_buffer(0);
-    this->draw_mesh(&mesh);
+    for (auto &points: this->triangles) {
+        Vec2 p1 = points.at(0);
+        Vec2 p2 = points.at(1);
+        Vec2 p3 = points.at(2);
+        this->draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
+        this->draw_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xFF000000);
+    }
+    this->triangles.clear();
     this->render_color_buffer();
     SDL_RenderPresent(this->renderer);
 }
@@ -146,10 +157,6 @@ void Renderer::draw_filled_triangle(int x1, int y1, int x2, int y2, int x3, int 
         int_swap(&x1, &x2);
     }
 
-    /*this->draw_line(x1, y1, x2, y2, color);
-    this->draw_line(x2, y2, x3, y3, color);
-    this->draw_line(x3, y3, x1, y1, color);*/
-
     if (y2 == y3) {
         this->draw_triangle_flat_bottom(x1, y1, x2, y2, x3, y3, color);
     } else if (y1 == y2) {
@@ -180,12 +187,10 @@ void Renderer::draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
     float curr_x = x0;
     float curr_y = y0;
 
-    for (int i = 0; i < side_len; i++) {
+    for (int i = 0; i <= side_len; i++) {
         int x = round(curr_x);
         int y = round(curr_y);
-        if (x >= 0 && x < this->window_width && y >= 0 && y < this->window_height) {
-            this->set_color(color, x, y);
-        }
+        this->set_color(color, x, y);
         curr_x += x_inc;
         curr_y += y_inc;
     }
@@ -203,15 +208,12 @@ static Vec3 transform(Vec3 v, Vec3 rotation) {
 void Renderer::draw_mesh(Mesh* mesh) {
     auto& vertices = mesh->vertices;
     auto& faces = mesh->faces;
-
     mesh->rotation = mesh->rotation + Vec3(0.001, 0.001, 0.001);
 
-    for (int i = 0; i < faces.size(); i++) {
-        Face f = faces[i];
-
-        Vec3 v1 = vertices[f.x];
-        Vec3 v2 = vertices[f.y];
-        Vec3 v3 = vertices[f.z]; 
+    for (auto& f : faces) {
+        Vec3 v1 = vertices[f.x - 1];
+        Vec3 v2 = vertices[f.y - 1];  
+        Vec3 v3 = vertices[f.z - 1]; 
 
         Vec3 t1 = transform(v1, mesh->rotation);
         Vec3 t2 = transform(v2, mesh->rotation);
@@ -237,9 +239,7 @@ void Renderer::draw_mesh(Mesh* mesh) {
         Vec2 p2 = Vec2((fov_factor * t2.x) / t2.z, (fov_factor * t2.y) / t2.z) + Vec2(w, h);
         Vec2 p3 = Vec2((fov_factor * t3.x) / t3.z, (fov_factor * t3.y) / t3.z) + Vec2(w, h);
         
-        this->draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
-        //this->draw_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, 0xffffffff);
-        //this->draw_triangle(p1, p2, p3, 0xffffffff);
+        this->triangles.push_back({ p1, p2, p3 });
     }
 }
 
@@ -258,14 +258,9 @@ void Renderer::set_color(uint32_t color, int x, int y) {
 }
 
 void Renderer::render_color_buffer() {
-    SDL_Texture* texture = SDL_CreateTexture(this->renderer, 
-        SDL_PIXELFORMAT_ABGR8888, 
-        SDL_TEXTUREACCESS_STREAMING,
-        this->window_width, this->window_height);
     SDL_UpdateTexture(texture, nullptr, this->color_buffer.data(), 
         (int)(this->window_width * sizeof(uint32_t)));
     SDL_RenderTexture(this->renderer, texture, nullptr, nullptr);
-    SDL_DestroyTexture(texture);
 }
 
 void Renderer::clear_color_buffer(uint32_t color) {

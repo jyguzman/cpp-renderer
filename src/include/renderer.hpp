@@ -9,8 +9,11 @@ struct Renderer {
 	bool is_running;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+	SDL_Texture* texture;
 	int window_width, window_height;
 	std::vector<uint32_t> color_buffer;
+	std::vector<std::vector<Vec2>> triangles;
+	Mesh mesh;
 	bool should_cull;
 
 	Renderer(int window_width, int window_height);
