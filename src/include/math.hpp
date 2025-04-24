@@ -13,8 +13,6 @@ struct Vec2 {
     Vec2 scale(float factor);
     float dot(const Vec2& other) const;
     Vec2 normalize();
-    Vec2 rotate_x(float angle);
-    Vec2 rotate_y(float angle);
 };
 
 struct Vec3 {
@@ -39,8 +37,11 @@ struct Vec3 {
 
 struct Mat4 {
     float data[4][4];
-    Mat4(float data[16]);
+    Mat4();
+    Mat4(float data[4][4]);
     float at(int row, int col) const;
 };
+
+Mat4 Mat4_Identity();
 
 #endif 

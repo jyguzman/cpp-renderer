@@ -40,18 +40,6 @@ Vec2 Vec2::normalize() {
 	return Vec2(this->x / magnitude, this->y / magnitude);
 }
 
-Vec2 Vec2::rotate_x(float angle) {
-	/*float y = this->y * cos(angle) - this->z * sin(angle);
-	float z = this->y * sin(angle) + this->z * cos(angle);*/
-	return Vec2(this->x, y);
-}
-
-Vec2 Vec2::rotate_y(float angle) {
-	/*float x = this->x * cos(angle) - this->z * sin(angle);
-	float z = this->x * sin(angle) + this->z * cos(angle);*/
-	return Vec2(x, this->y);
-}
-
 Vec3::Vec3() {
 	this->x = 0;
 	this->y = 0;
@@ -126,15 +114,32 @@ Vec2 Vec3::to_vec2() {
 	return Vec2(this->x, this->y);
 }
 
-Mat4::Mat4(float data[16]) {
-	int k = 0;
+Mat4::Mat4() {
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
-			this->data[i][j] = data[k++];
+			this->data[i][j] = 0;
+		}
+	}
+}
+
+Mat4::Mat4(float data[4][4]) {
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			this->data[i][j] = data[i][j];
 		}
 	}
 }
 
 float Mat4::at(int row, int col) const {
 	return this->data[row][col];
+}
+
+Mat4 Mat4_Identity() {
+	float eye[4][4] = {
+		{1, 0, 0, 0},
+		{0, 1, 0, 0},
+		{0, 0, 1, 0},
+		{0, 0, 0, 1}
+	};
+	return Mat4(eye);
 }
