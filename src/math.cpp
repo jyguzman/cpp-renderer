@@ -88,7 +88,6 @@ Vec3 Vec3::normalize() {
 }
 
 Vec3 Vec3::project(float factor) {
-	//float z = this->z < (float)0.0001 ? (float)0.0001 : this->z; 
 	return Vec3(factor * this->x / z, factor * this->y / z, 0);
 }
 
@@ -113,6 +112,50 @@ Vec3 Vec3::rotate_z(float angle) {
 Vec2 Vec3::to_vec2() {
 	return Vec2(this->x, this->y);
 }
+
+Vec4::Vec4() {
+	this->x = 0;
+	this->y = 0;
+	this->z = 0;
+	this->w = 0;
+}
+
+Vec4::Vec4(float x, float y, float z, float w) {
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->w = w;
+}
+
+Vec4 Vec4::translate(const Vec4& other) {
+	return Vec4(this->x + other.x, this->y + other.y, this->z + other.z, this->w + other.z);
+}
+
+float Vec4::magnitude() const {
+	return (float)sqrt(this->x * this->x + this->y * this->y + this->z * this->z + this->w + this->w);
+}
+
+Vec4 Vec4::operator+(const Vec4& other) {
+	return Vec4(this->x + other.x, this->y + other.y, this->z + other.z, this->w + other.w);
+}
+
+Vec4 Vec4::operator-(const Vec4& other) {
+	return Vec4(this->x - other.x, this->y - other.y, this->z - other.z, this->w + other.w);
+}
+
+Vec4 Vec4::scale(float x) {
+	return Vec4(x * this->x, x * this->y, x * this->z, x * this->w);
+}
+
+float Vec4::dot(const Vec4& other) const {
+	return this->x * other.x + this->y * other.y + this->z * other.z;
+}
+
+Vec4 Vec4::normalize() {
+	float magnitude = this->magnitude();
+	return Vec4(this->x / magnitude, this->y / magnitude, this->z / magnitude, this->w/magnitude);
+}
+
 
 Mat4::Mat4() {
 	for (int i = 0; i < 4; ++i) {

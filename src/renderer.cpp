@@ -2,6 +2,7 @@
 #include <iostream>
 #include "include/renderer.hpp"
 #include "include/geometry.hpp"
+#include "include/math.hpp"
 #include "include/obj.hpp"
 
 static void int_swap(int* a, int* b) {

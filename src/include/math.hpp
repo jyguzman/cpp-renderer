@@ -35,6 +35,20 @@ struct Vec3 {
     Vec2 to_vec2();
 };
 
+struct Vec4 {
+    float x, y, z, w;
+
+    Vec4();
+    Vec4(float x, float y, float z, float w);
+    Vec4 translate(const Vec4& other);
+    Vec4 operator+(const Vec4& other);
+    Vec4 operator-(const Vec4& other);
+    float magnitude() const;
+    Vec4 scale(float factor);
+    float dot(const Vec4& other) const;
+    Vec4 normalize();
+};
+
 struct Mat4 {
     float data[4][4];
     Mat4();
